@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { connect } from 'react-redux';
 import contactsActions from '../../redux/contacts/contacts-actions';
-// import PropTypes, { number } from 'prop-types';
+import PropTypes from 'prop-types';
 import styles from './ContactForm.module.css';
 
 class ContactForm extends Component {
@@ -20,10 +20,20 @@ class ContactForm extends Component {
   };
 
   onAddContact = event => {
+    const { items } = this.props;
+
     event.preventDefault();
 
-    this.props.onSubmit(this.state);
+    if (
+      items.find(
+        item => item.name.toLowerCase() === this.state.name.toLowerCase(),
+      )
+    ) {
+      alert('Такой контакт существует!');
+      return;
+    }
 
+    this.props.onSubmit(this.state);
     this.reset();
   };
 
@@ -34,6 +44,7 @@ class ContactForm extends Component {
   render() {
     const { name, number } = this.state;
     const { onAddContact, inputChange, nameInputId, numberInputId } = this;
+
     return (
       <form className={styles.formContact} onSubmit={onAddContact}>
         <label htmlFor={nameInputId} className={styles.formLabel}>
@@ -72,13 +83,19 @@ class ContactForm extends Component {
   }
 }
 
-// ContactForm.propTypes = {
-//   //   message: PropTypes.string.isRequired,
-// };
+ContactForm.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+};
+
+const mapStateToProps = state => {
+  return {
+    items: state.contacts.items,
+  };
+};
 
 const mapDispatchToProps = dispatch => ({
   onSubmit: (name, number) =>
     dispatch(contactsActions.addContact(name, number)),
 });
 
-export default connect(null, mapDispatchToProps)(ContactForm);
+export default connect(mapStateToProps, mapDispatchToProps)(ContactForm);
